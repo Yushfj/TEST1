@@ -9,64 +9,106 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: ""
+  });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    if (username === "ADMIN" && password === "admin") {
-      router.push("/dashboard");
-    } else {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      // Replace with actual authentication logic
+      if (credentials.username === "ADMIN" && credentials.password === "admin") {
+        router.push("/dashboard");
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } catch (err) {
       setError("Invalid username or password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="relative flex items-center justify-center h-screen">
-      {/* Background Image */}
+    <div className="relative flex items-center justify-center min-h-screen">
+      {/* Background Image with priority loading */}
       <Image
-        src="https://picsum.photos/1920/1080"
-        alt="WageWise Background"
-        layout="fill"
-        objectFit="cover"
-        className="absolute top-0 left-0 w-full h-full -z-10"
+        src="/images/login-bg.jpg" // Recommended: Use local image
+        alt="Login Background"
+        fill
+        priority
+        className="absolute object-cover -z-10"
       />
 
-      {/* Overlay for better readability */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50 -z-9" />
+      {/* Semi-transparent overlay */}
+      <div className="absolute inset-0 bg-black/50 -z-[5]" />
 
-      <Card className="w-full max-w-md bg-transparent backdrop-blur-md shadow-lg rounded-lg border border-accent/40">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center text-white">
-            Lal's Motor Winders (FIJI) PTE Limited
+      <Card className="w-full max-w-md bg-background/80 backdrop-blur-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">
+            <span className="text-primary">Lal's</span> Motor Winders
+            <span className="block text-sm font-normal text-muted-foreground">
+              FIJI PTE Limited
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          {error && <div className="text-red-500">{error}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-2">
-              <Label htmlFor="username" className="text-white">Username</Label>
+        
+        <CardContent>
+          {error && (
+            <div className="p-3 mb-4 text-sm text-red-600 bg-red-100 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={credentials.username}
+                onChange={handleChange}
+                required
+                autoComplete="username"
               />
             </div>
-            <div className="grid gap-2 mt-4">
-              <Label htmlFor="password" className="text-white">Password</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={credentials.password}
+                onChange={handleChange}
+                required
+                autoComplete="current-password"
               />
             </div>
-            <Button className="w-full mt-6" type="submit">
-              Login
+
+            <Button 
+              type="submit" 
+              className="w-full mt-6"
+              disabled={isLoading}
+            >
+              {isLoading ? "Authenticating..." : "Login"}
             </Button>
           </form>
         </CardContent>
